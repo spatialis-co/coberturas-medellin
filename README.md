@@ -2,7 +2,7 @@
 
 Visor de **coberturas de la tierra CORINE Land Cover** del municipio de Medellín, con consulta espacial por radio resuelta **íntegramente en el navegador**.
 
-Demo de [Spatialis S.A.S.](https://spatialis.co) · <https://spatialis-co.github.io/coberturas-medellin/>
+Demo de [Spatialis S.A.S.](https://spatialis.com.co) · <https://spatialis-co.github.io/coberturas-medellin/>
 
 ## Qué demuestra
 
@@ -68,7 +68,7 @@ Dentro de un `iframe` el visor activa el gesto cooperativo: la rueda del ratón 
 
 ## Identidad
 
-Interfaz alineada al sistema oficial de spatialis.co: reparto de color 60-30-10 (superficies neutras, azul corporativo `#0068B5`/`#0071C5`/`#00C7FD`, acento esmeralda `#34D399`), tipografías Nunito y JetBrains Mono, e isotipo oficial. `assets/spatialis-ui.css` es la misma hoja que usan los demás demos de Spatialis.
+Interfaz alineada al sistema oficial de spatialis.com.co: reparto de color 60-30-10 (superficies neutras, azul corporativo `#0068B5`/`#0071C5`/`#00C7FD`, acento esmeralda `#34D399`), tipografías Nunito y JetBrains Mono, e isotipo oficial. `assets/spatialis-ui.css` es la misma hoja que usan los demás demos de Spatialis.
 
 ## Licencia
 
@@ -76,4 +76,4 @@ Código de demostración, todos los derechos reservados. Consulta el archivo `LI
 
 ## Contacto
 
-Spatialis S.A.S. · <https://spatialis.co> · desarrollo@spatialis.com.co
+Spatialis S.A.S. · <https://spatialis.com.co> · desarrollo@spatialis.com.co
