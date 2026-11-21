@@ -103,7 +103,7 @@
   var porNivel3 = [];       // filas agregadas
   var colorPorNivel3 = {};
   var totalHa = 0;
-  var map, capaClc, capaResultado, circuloLeaflet, anillo;
+  var map, capaClc, capaResultado, circuloLeaflet;
   var ultimaConsulta = null;
 
   /* ----------------------------------------------------------- agregados */
@@ -186,7 +186,6 @@
 
     map.on("mousemove", function (e) { SP.coordenadas(e.latlng.lng, e.latlng.lat); });
     map.on("click", function (e) { consultar(e.latlng.lat, e.latlng.lng); });
-    map.on("zoomend", function () { if (anillo) anillo.redibujar(); });
   }
 
   /* --------------------------------------------------- consulta espacial */
@@ -230,7 +229,7 @@
     ultimaConsulta = { lat: lat, lon: lon, radio: radio, filas: filas };
 
     dibujarResultado(lat, lon, radio, piezas);
-    pintarTabla(filas, sumaHa, ms, areaConsulta / 10000);
+    pintarResultado(filas, sumaHa, ms);
   }
 
   function dibujarResultado(lat, lon, radio, piezas) {
@@ -256,132 +255,94 @@
         interactive: false,
       }).addTo(capaResultado);
     });
-
-    if (anillo) anillo.actualizar(lat, lon, radio, ultimaConsulta.filas);
   }
 
-  function pintarTabla(filas, sumaHa, ms, areaCirculoHa) {
-    var seccion = document.getElementById("seccion-resultado");
-    seccion.hidden = false;
+  /* Resultado del clic, graficado en el panel derecho */
+  function pintarResultado(filas, sumaHa, ms) {
+    document.getElementById("pd-vacio").hidden = true;
+    document.getElementById("pd-resultado").hidden = false;
 
     SP.kpi("res-ha", SP.entero(sumaHa));
     SP.kpi("res-n", filas.length);
     SP.kpi("res-ms", ms + " ms");
 
-    var cuerpo = document.querySelector("#tabla-resultado tbody");
-    cuerpo.innerHTML = "";
+    pintarDona(filas, sumaHa);
+    pintarLista(filas);
+  }
+
+  /* Dona de composición centrada y legible (antes era un anillo sobre el mapa) */
+  function pintarDona(filas, sumaHa) {
+    var cont = d3.select("#pd-dona");
+    cont.selectAll("*").remove();
 
     if (!filas.length) {
-      var tr = document.createElement("tr");
-      var td = document.createElement("td");
-      td.colSpan = 3;
-      td.className = "vacio";
-      td.textContent = "El círculo no cruza ninguna cobertura.";
-      tr.appendChild(td);
-      cuerpo.appendChild(tr);
+      cont.append("p").attr("class", "sp-note")
+        .text("El buffer no cruza ninguna cobertura.");
       return;
     }
 
+    var tam = Math.min(236, cont.node().clientWidth || 236);
+    var r = tam / 2;
+    var grosor = r * 0.36;
+
+    var svg = cont.append("svg")
+      .attr("width", tam).attr("height", tam)
+      .attr("viewBox", "0 0 " + tam + " " + tam);
+    var g = svg.append("g").attr("transform", "translate(" + r + "," + r + ")");
+
+    var arco = d3.arc().innerRadius(r - grosor).outerRadius(r - 2)
+      .padAngle(0.014).cornerRadius(2);
+    var pastel = d3.pie().sort(null).value(function (d) { return d.area_ha; });
+
+    g.selectAll("path")
+      .data(pastel(filas))
+      .enter()
+      .append("path")
+      .attr("fill", function (d) { return colorPorNivel3[d.data.nivel3] || "#777"; })
+      .attr("stroke", "#070d18")
+      .attr("stroke-width", 1)
+      .transition()
+      .duration(650)
+      .attrTween("d", function (d) {
+        var i = d3.interpolate({ startAngle: d.startAngle, endAngle: d.startAngle }, d);
+        return function (t) { return arco(i(t)); };
+      });
+
+    g.append("text").attr("class", "pd-dona__num")
+      .attr("text-anchor", "middle").attr("dy", "-0.05em")
+      .attr("font-size", Math.round(r * 0.3)).text(SP.entero(sumaHa));
+    g.append("text").attr("class", "pd-dona__lbl")
+      .attr("text-anchor", "middle").attr("dy", "1.5em")
+      .attr("font-size", Math.round(r * 0.14)).text("hectáreas");
+  }
+
+  function pintarLista(filas) {
+    var cont = document.getElementById("pd-lista");
+    cont.innerHTML = "";
     filas.forEach(function (f) {
-      var tr = document.createElement("tr");
-
-      var tdN = document.createElement("td");
-      var punto = document.createElement("span");
-      punto.className = "punto";
-      punto.style.background = colorPorNivel3[f.nivel3] || "#777";
-      tdN.appendChild(punto);
-      tdN.appendChild(document.createTextNode(f.nivel3));
-
-      var tdA = document.createElement("td");
-      tdA.className = "num";
-      tdA.textContent = f.area_ha.toFixed(1);
-
-      var tdP = document.createElement("td");
-      tdP.className = "num";
-      tdP.textContent = f.pct.toFixed(1);
-
-      tr.appendChild(tdN); tr.appendChild(tdA); tr.appendChild(tdP);
-      cuerpo.appendChild(tr);
+      var row = document.createElement("div");
+      row.className = "pd-item";
+      var dot = document.createElement("span");
+      dot.className = "punto";
+      dot.style.background = colorPorNivel3[f.nivel3] || "#777";
+      var txt = document.createElement("span");
+      txt.className = "pd-item__txt";
+      txt.textContent = f.nivel3;
+      txt.title = f.nivel3 + " · " + f.area_ha.toFixed(1) + " ha";
+      var pct = document.createElement("span");
+      pct.className = "pd-item__pct";
+      pct.textContent = f.pct.toFixed(1) + "%";
+      row.appendChild(dot); row.appendChild(txt); row.appendChild(pct);
+      cont.appendChild(row);
     });
   }
 
   function limpiar() {
     capaResultado.clearLayers();
-    if (anillo) anillo.limpiar();
-    document.getElementById("seccion-resultado").hidden = true;
+    document.getElementById("pd-resultado").hidden = true;
+    document.getElementById("pd-vacio").hidden = false;
+    d3.select("#pd-dona").selectAll("*").remove();
     ultimaConsulta = null;
-  }
-
-  /* ------------------------------------------- anillo estadístico (D3) */
-
-  function crearAnillo() {
-    var svg = d3.select(map.getPanes().overlayPane)
-      .append("svg")
-      .attr("class", "anillo-d3")
-      .style("pointer-events", "none");
-    var g = svg.append("g");
-    var estado = null;
-
-    function pintar() {
-      g.selectAll("*").remove();
-      if (!estado) { svg.style("display", "none"); return; }
-      svg.style("display", null);
-
-      var centro = map.latLngToLayerPoint([estado.lat, estado.lon]);
-      /* El radio en píxeles se mide proyectando un punto desplazado esa misma
-         distancia al este: así el anillo queda pegado al círculo de Leaflet
-         en cualquier zoom y latitud. */
-      var alEste = map.latLngToLayerPoint(
-        desplazar(estado.lat, estado.lon, estado.radio));
-      var rPx = Math.max(12, Math.abs(alEste.x - centro.x));
-
-      var grosor = Math.max(7, Math.min(16, rPx * 0.16));
-      var rInterno = rPx + 4;
-
-      var caja = 40;
-      svg.attr("width", (rInterno + grosor + caja) * 2)
-        .attr("height", (rInterno + grosor + caja) * 2)
-        .style("left", (centro.x - rInterno - grosor - caja) + "px")
-        .style("top", (centro.y - rInterno - grosor - caja) + "px");
-      g.attr("transform", "translate(" + (rInterno + grosor + caja) + "," +
-        (rInterno + grosor + caja) + ")");
-
-      var arco = d3.arc()
-        .innerRadius(rInterno)
-        .outerRadius(rInterno + grosor)
-        .padAngle(0.012);
-
-      var pastel = d3.pie().sort(null).value(function (d) { return d.area_ha; });
-
-      g.selectAll("path")
-        .data(pastel(estado.filas))
-        .enter()
-        .append("path")
-        .attr("fill", function (d) { return colorPorNivel3[d.data.nivel3] || "#777"; })
-        .attr("stroke", "#070d18")
-        .attr("stroke-width", 0.8)
-        .transition()
-        .duration(650)
-        .attrTween("d", function (d) {
-          var i = d3.interpolate({ startAngle: d.startAngle, endAngle: d.startAngle }, d);
-          return function (t) { return arco(i(t)); };
-        });
-    }
-
-    return {
-      actualizar: function (lat, lon, radio, filas) {
-        estado = { lat: lat, lon: lon, radio: radio, filas: filas };
-        pintar();
-      },
-      redibujar: pintar,
-      limpiar: function () { estado = null; pintar(); },
-    };
-  }
-
-  /* Punto desplazado radio metros al este, para medir el radio en píxeles */
-  function desplazar(lat, lon, radioM) {
-    var dLon = ((radioM / RADIO) / RAD) / Math.cos(lat * RAD);
-    return [lat, lon + dLon];
   }
 
   /* -------------------------------------------------------------- leyenda */
@@ -631,7 +592,6 @@
       construirPaleta(porNivel3);
 
       iniciarMapa();
-      anillo = crearAnillo();
       pintarLeyenda();
       iniciarVistas();
       iniciarControles();

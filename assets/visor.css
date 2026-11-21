@@ -15,6 +15,9 @@
 .vista--mapa > #map {
   position: absolute;
   inset: 0;
+  /* Crea contexto de apilamiento propio: sin esto, los paneles internos de
+     Leaflet (z-index 200–700) se escapan y tapan los paneles de la interfaz. */
+  isolation: isolate;
 }
 
 .vista-tabs {
@@ -256,6 +259,53 @@
 .fila:hover .barra-etiqueta { fill: var(--sp-text); }
 
 
+/* --------------------------------------------- panel derecho: buffer + dona */
+
+.panel-der {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 20;
+  width: 300px;
+  max-height: calc(100% - 28px);
+  display: flex;
+  flex-direction: column;
+  background: rgba(11, 21, 40, .93);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius);
+  box-shadow: var(--sp-shadow);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+
+.panel-der__scroll { overflow-y: auto; overscroll-behavior: contain; }
+
+.pd-sec { padding: 13px 14px; border-bottom: 1px solid var(--sp-border-soft); }
+.pd-sec:last-child { border-bottom: 0; }
+
+.pd-dona { display: grid; place-items: center; min-height: 196px; margin: 4px 0 8px; }
+.pd-dona__num { font-family: var(--sp-mono); font-weight: 700; fill: var(--sp-text); }
+.pd-dona__lbl { fill: var(--sp-faint); }
+
+.pd-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+  font-size: 12px;
+  color: var(--sp-muted);
+  margin-bottom: 11px;
+}
+
+.pd-kpis strong { color: var(--sp-cyan); font-family: var(--sp-mono); font-size: 14px; }
+.pd-kpis__ms { margin-left: auto; color: var(--sp-faint); font-size: 11px; }
+
+.pd-lista { display: flex; flex-direction: column; gap: 6px; }
+
+.pd-item { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--sp-muted); }
+.pd-item__txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pd-item__pct { flex: none; color: var(--sp-faint); font-size: 11px; font-family: var(--sp-mono); }
+
 /* --------------------------------------------------------------- pantallas */
 
 @media (max-width: 1040px) {
@@ -267,6 +317,23 @@
   .tablero { padding: 20px 16px 48px; }
   .tablero__cab h2 { font-size: 1.25rem; }
   .kpi-value { font-size: 1.3rem; }
+
+  /* el panel derecho pasa a hoja inferior, como el panel de consulta */
+  .panel-der {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-height: 54dvh;
+    border-radius: 16px 16px 0 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* en móvil el disparador del panel de consulta sube para no quedar tapado */
+  .sp-fab { bottom: calc(54dvh + 14px); }
 }
 
 @media (max-width: 560px) {

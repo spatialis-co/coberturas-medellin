@@ -29,7 +29,7 @@
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="assets/spatialis-ui.css">
-  <link rel="stylesheet" href="assets/visor.css">
+  <link rel="stylesheet" href="assets/visor.css?v=1">
   <link rel="icon" href="assets/spatialis-favicon.png" type="image/png">
 </head>
 
@@ -74,42 +74,14 @@
             <div class="sp-section">
               <h2 class="sp-section__title">Consulta espacial</h2>
               <p class="sp-note" style="margin-bottom:11px">
-                Haz clic en el mapa para cruzar un círculo de consulta contra las coberturas. La intersección y
-                las áreas se calculan en tu navegador.
+                Haz clic en el mapa para cruzar un círculo de consulta (el <strong>buffer</strong>) contra las
+                coberturas. Su radio se ajusta en el panel de la derecha, donde también se grafica el resultado.
+                La intersección y las áreas se calculan en tu navegador.
               </p>
-              <div class="sp-range">
-                <input type="range" id="radio" min="200" max="5000" step="100" value="1200"
-                  aria-label="Radio de consulta en metros">
-                <output class="sp-range__out" for="radio">1200 m</output>
-              </div>
-              <div class="sp-chips" style="margin-top:11px">
+              <div class="sp-chips">
                 <button class="sp-chip" type="button" id="btn-ejemplo">Ver un ejemplo</button>
                 <button class="sp-chip" type="button" id="btn-limpiar">Limpiar</button>
               </div>
-            </div>
-
-            <div class="sp-section" id="seccion-resultado" hidden>
-              <h2 class="sp-section__title">Resultado</h2>
-              <div class="sp-kpis">
-                <div class="sp-kpi">
-                  <div class="sp-kpi__value" data-kpi="res-ha">—</div>
-                  <div class="sp-kpi__label">Hectáreas</div>
-                </div>
-                <div class="sp-kpi">
-                  <div class="sp-kpi__value" data-kpi="res-n">—</div>
-                  <div class="sp-kpi__label">Coberturas</div>
-                </div>
-                <div class="sp-kpi">
-                  <div class="sp-kpi__value" data-kpi="res-ms">—</div>
-                  <div class="sp-kpi__label">Cálculo</div>
-                </div>
-              </div>
-              <table class="tabla" id="tabla-resultado">
-                <thead>
-                  <tr><th>Cobertura</th><th class="num">ha</th><th class="num">%</th></tr>
-                </thead>
-                <tbody></tbody>
-              </table>
             </div>
 
             <details class="sp-section sp-fold" open>
@@ -129,6 +101,36 @@
               </div>
             </details>
 
+          </div>
+        </aside>
+
+        <!-- Panel derecho: control del buffer y composición gráfica del clic -->
+        <aside class="panel-der" aria-label="Buffer y composición">
+          <div class="panel-der__scroll">
+            <section class="pd-sec">
+              <h2 class="sp-section__title">Buffer de análisis</h2>
+              <div class="sp-range">
+                <input type="range" id="radio" min="200" max="5000" step="100" value="1200"
+                  aria-label="Radio del buffer en metros">
+                <output class="sp-range__out" for="radio">1200 m</output>
+              </div>
+              <p class="sp-note">Radio del círculo que se cruza con las coberturas al hacer clic en el mapa.</p>
+            </section>
+
+            <section class="pd-sec" id="pd-resultado" hidden>
+              <h2 class="sp-section__title">Composición del buffer</h2>
+              <div class="pd-dona" id="pd-dona" role="img" aria-label="Gráfico de composición de coberturas"></div>
+              <div class="pd-kpis">
+                <span><strong data-kpi="res-ha">—</strong> ha</span>
+                <span><strong data-kpi="res-n">—</strong> coberturas</span>
+                <span class="pd-kpis__ms sp-mono" data-kpi="res-ms">—</span>
+              </div>
+              <div class="pd-lista" id="pd-lista"></div>
+            </section>
+
+            <section class="pd-sec pd-vacio" id="pd-vacio">
+              <p class="sp-note">Haz clic en el mapa para graficar aquí la composición de coberturas dentro del buffer.</p>
+            </section>
           </div>
         </aside>
 
@@ -198,7 +200,7 @@
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/polygon-clipping@0.15.7/dist/polygon-clipping.umd.js" defer></script>
   <script src="assets/spatialis-ui.js" defer></script>
-  <script src="assets/visor.js" defer></script>
+  <script src="assets/visor.js?v=1" defer></script>
 </body>
 
 </html>
