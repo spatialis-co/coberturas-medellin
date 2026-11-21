@@ -161,8 +161,23 @@
 
     window.spMap = map;
 
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 })
-      .addTo(map);
+    /* Mapa base temático: lienzo gris de Esri (acceso anónimo), claro u oscuro
+       según el tema del sitio padre. Al cambiar de tema solo se reemplaza la
+       base; los polígonos de coberturas y el resultado de la consulta quedan. */
+    var ESRI_CANVAS = "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/";
+    var TILES_TEMA = {
+      light: ESRI_CANVAS + "World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+      dark: ESRI_CANVAS + "World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    };
+    var capaBase = null;
+    function ponerBaseTema(tema) {
+      var url = TILES_TEMA[tema] || TILES_TEMA.dark;
+      if (capaBase) map.removeLayer(capaBase);
+      capaBase = L.tileLayer(url, { maxZoom: 19, maxNativeZoom: 16 }).addTo(map);
+      capaBase.bringToBack();
+    }
+    ponerBaseTema((window.SpatialisTheme && SpatialisTheme.get()) || "dark");
+    window.addEventListener("spatialis:theme-change", function (e) { ponerBaseTema(e.detail.theme); });
 
     L.control.zoom({ position: "topright" }).addTo(map);
     L.control.scale({ position: "bottomright", imperial: false, maxWidth: 110 }).addTo(map);
